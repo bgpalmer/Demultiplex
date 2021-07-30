@@ -59,22 +59,22 @@ In total, 52 files will be created. For all categories, the index (i5 and i7) sh
 
 4. Pseudocode
 
-A) Store the known indices for easy access.
-B) For each read index pair, create and open a file with read identifier and index in title (48 files).
-C) Create buckets for mismatches and non-matches/unknowns, denoted by read number. Open the files and store in data structure for easy access (4 files).
-D) For each index (R2-R3) record, check against the known indices in memory, and keep a counter for each bucket category (match, unmatch, unknown)
-    ia) get reverse complement of R3 index (will require flipping string and switching watson-crick basepairing).
-    ib) calculate and store the quality score of the read
-    ii) if a match and quality score is good (above threshold)
-        a) store reads (R1 and R4) into read-index pair bucket (NOTE: there is no specification currently if reverse complement or original sequence should be stored in file)
-        b) increment match_counter
-    iii) else if one of the indexes does not match
-        a) add R1 and R4 record to their respective unmatch bucket
-        b) increment hop_counter
-    iv) else if not a match or quality score bad or N found in index
-        a) add R1 and R4 records to their non-matches/unknowns bucket
-        b) increment unkown_counter
-F) Finally print out counters of matching read pairs, unmatched read pairs, and read pairs with index hopping (6 total). 
+`A) Store the known indices for easy access.`
+`B) For each read index pair, create and open a file with read identifier and index in title (48 files).`
+`C) Create buckets for mismatches and non-matches/unknowns, denoted by read number. Open the files and store in data structure for easy access (4 files).`
+`D) For each index (R2-R3) record, check against the known indices in memory, and keep a counter for each bucket category (match, unmatch, unknown)`
+`    ia) get reverse complement of R3 index (will require flipping string and switching watson-crick basepairing).`
+`    ib) calculate and store the quality score of the read`
+`    ii) if a match and quality score is good (above threshold)`
+`        a) store reads (R1 and R4) into read-index pair bucket (NOTE: there is no specification currently if reverse complement or original sequence should be stored in file)`
+`       b) increment match_counter`
+`    iii) else if one of the indexes does not match`
+`        a) add R1 and R4 record to their respective unmatch bucket`
+`        b) increment hop_counter`
+`    iv) else if not a match or quality score bad or N found in index`
+`        a) add R1 and R4 records to their non-matches/unknowns bucket`
+`        b) increment unkown_counter`
+`F) Finally print out counters of matching read pairs, unmatched read pairs, and read pairs with index hopping (6 total). `
 
 
 5. High level functions. For each function, be sure to include:
