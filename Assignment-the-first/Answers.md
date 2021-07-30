@@ -14,10 +14,10 @@
 
 2. Per-base NT distribution
     1. Use markdown to insert your 4 histograms here.
-    2. ![Read 1]('1294_S1_L008_R1_001.fastq.png')
-    3. ![Index 1]('1294_S1_L008_R2_001.fastq.png')
-    4. ![Index 2]('1294_S1_L008_R3_001.fastq.png')
-    5. ![Read 2]('1294_S1_L008_R4_001.fastq.png')
+    2. ![Read 1](1294_S1_L008_R1_001.fastq.png)
+    3. ![Index 1](1294_S1_L008_R2_001.fastq.png)
+    4. ![Index 2](1294_S1_L008_R3_001.fastq.png)
+    5. ![Read 2](1294_S1_L008_R4_001.fastq.png)
 
     6. Based on the average scores 30 should be a good cutoff. This will give us 99.9% accuracy at each basepair, and we will be able to keep a larger portion of reads (ie. will not need to move reads to unknown/low-read bucket (see below))
 
