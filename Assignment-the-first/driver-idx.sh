@@ -9,4 +9,4 @@
 
 
 
-/usr/bin/time -v ./first.py $1
+/usr/bin/time -v ./first-idx.py $1

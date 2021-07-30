@@ -56,14 +56,14 @@ n_len_idx: int = 8
 if "__main__" == __name__:
 
     filename = sys.argv[1]
-    x = np.zeros(n_basepairs, dtype=float)
+    x = np.zeros(n_len_idx, dtype=float)
     for record in get_fastq_records(filename):
         x += [(c - 33) for c in record[3]]
 
     for i in range(len(x)):
         x[i] /= n_records
 
-    plt.bar([i for i in range(n_basepairs)], x, ec='blue')
+    plt.bar([i for i in range(n_len_idx)], x, ec='blue')
     plt.title(f"{filename[filename.rfind('/') + 1:filename.rfind('.')]} Average Quality Score per Base Pair")
     plt.xlabel("Base Pair Position")
     plt.ylabel("Mean Quality Score")
