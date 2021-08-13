@@ -4,10 +4,10 @@ inputdir="../TEST-input_FASTQ"
 outputdir="../TEST-output_FASTQ"
 
 
-index1_file="${inputdir}/R2_input.fq"
-index2_file="${inputdir}/R3_input.fq"
-read1_file="${inputdir}/R1_input.fq"
-read2_file="${inputdir}/R4_input.fq"
+index1_file="${inputdir}/R2_input.fq.gz"
+index2_file="${inputdir}/R3_input.fq.gz"
+read1_file="${inputdir}/R1_input.fq.gz"
+read2_file="${inputdir}/R4_input.fq.gz"
 
 python3 demultiplex.py \
 	--index_file	"/projects/bgmp/shared/2017_sequencing/indexes.txt" \

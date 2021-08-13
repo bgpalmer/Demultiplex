@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 
 import bioinfo as bio
-# import utilities as util
 import argparse
-import pathlib
-from collections import Counter
+# import pathlib
+# from collections import Counter
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -30,6 +29,10 @@ if __name__ == "__main__":
     # if not os.path.isdir(OUTPUT_DIR):
     #     os.path.mkdir(OUTPUT_DIR)
 
+
+    # Load indexes into map
+    # Key: Sequence (eg. AAAAAAAA)
+    # Value: Index Name (eg. F12)
     index_map: dict = dict()
     with open(INDEXES, 'r') as f:
         ln = 0
@@ -42,21 +45,29 @@ if __name__ == "__main__":
 
     read_index_match_map: dict = {}
     read_nonmatch_bucket_map: dict = {}
-    count_map: dict = {}
+    read_counter: dict = {}
 
     reads = ['R1', 'R4']
     nonmatch_categories = ['Unmatched', 'Unknown']
 
+    # Open file handles for:
+    # - Read-Pair Matches
+    # - Index hopping ('Unmatched')
+    # - Unrecognized indexes, N's in indexes ('Unknown')
+    # Total file counts = 52
+    #
+    # Additionally, initialize counters for all file writes above
+    
     for read in reads:
         read_index_match_map[read] = {}
         read_nonmatch_bucket_map[read] = {}
 
         for index_seq, index_name in index_map.items():
             read_index_match_map[read][index_seq] = open(f"{OUTPUT_DIR}/{read}_{index_name}.fq", 'w')
-            count_map[index_seq] = 0
+            read_counter[index_seq] = 0
         for category in nonmatch_categories:
             read_nonmatch_bucket_map[read][category] = open(f"{OUTPUT_DIR}/{read}_{category}.fq", 'w')
-            count_map[category] = 0
+            read_counter[category] = 0
 
     INDEX1_FILE = args.index_1
     INDEX2_FILE = args.index_2
@@ -65,9 +76,14 @@ if __name__ == "__main__":
     QUALITY_SCORE_AVG = float(args.qscore_cutoff)
 
 
+    # Read one record from Read 1-2 and Index 1-2 at a time
     for index1_record, index2_record, read1_record, read2_record in zip(bio.get_fastq_records(INDEX1_FILE), bio.get_fastq_records(INDEX2_FILE), bio.get_fastq_records(READ1_FILE), bio.get_fastq_records(READ2_FILE)):        
+        
+        # Read2 and Index2 are reverse complemented
         index2_record[1] = bio.reverse_complement(index2_record[1])
         read2_record[1] = bio.reverse_complement(read2_record[1])
+        
+        # Update read headers with indexes (this assumes files are ordered)
         read1_record[0] += f" {index1_record[1]}-{index2_record[1]}"
         read2_record[0] += f" {index1_record[1]}-{index2_record[1]}"
 
@@ -75,26 +91,37 @@ if __name__ == "__main__":
         index1_qs: bool = bio.quality_score(index1_record[3]) >= QUALITY_SCORE_AVG
         index2_qs: bool = bio.quality_score(index2_record[3]) >= QUALITY_SCORE_AVG
 
+
+        '''
+        This is where file-writing occurs.
+        Additionally, each write per read-pair index
+        and nonmatch/unknown categories will be counted.
+        '''
+
+        # Read-Pairs must have known indexes and indexes with good quality scores
         if index2_record[1] in index_map and index1_record[1] in index_map and index1_qs and index2_qs:          
             if index2_record[1] == index1_record[1]:
                 read_index_match_map["R1"][index1_record[1]].write('\n'.join(line for line in read1_record) + '\n')
                 read_index_match_map["R4"][index2_record[1]].write('\n'.join(line for line in read2_record) + '\n')
-                count_map[index1_record[1]] += 1
+                read_counter[index1_record[1]] += 1
             else:
+                # If the indexes do not match, write to respective index-hopping files
                 read_nonmatch_bucket_map["R1"]["Unmatched"].write('\n'.join(line for line in read1_record) + '\n')
                 read_nonmatch_bucket_map["R4"]["Unmatched"].write('\n'.join(line for line in read2_record) + '\n')
-                count_map["Unmatched"] += 1
+                read_counter["Unmatched"] += 1
 
         else:
+            # We did not meet the critera above; update the unknown file
+            # Improvement: do not need the if statements...
             if index1_record[1] not in index_map or not index1_qs:
                 read_nonmatch_bucket_map["R1"]["Unknown"].write('\n'.join(line for line in read1_record) + '\n')
 
             if index2_record[1] not in index_map or not index2_qs:
                 read_nonmatch_bucket_map["R4"]["Unknown"].write('\n'.join(line for line in read2_record) + '\n')
 
-            count_map["Unknown"] += 1
+            read_counter["Unknown"] += 1
 
-
+    # Close the file handles
     for read in reads:
         for index in index_map.keys():
             read_index_match_map[read][index].close()
@@ -102,17 +129,42 @@ if __name__ == "__main__":
             read_nonmatch_bucket_map[read][category].close()
 
 
+    '''
+    Output two tables of stats to stdout deliminated with tabs.
+    
+    Table 1: Read-Pair Match Data
+    Headers: 
+        - Index: Index Name (eg. F12)
+        - Count: Number of index-pair write
+        - Percentage: Percentage of total index-pair writes
 
-    total_read_pair_matches:int = 0
-    print("Index\tCounts")
+    Table 2: Reads seen that do not fit Table 1
+    Headers:
+        - Category: Categories (eg. examples above)
+        - Count: Number of values for category
+        - Percentage: Percentage of value for ALL reads seens
+    '''
+
+
+    print("Index\tCount\tPercentage")
+
+    total: int = sum(read_counter.values())
+
+    read_count: int = total - read_counter["Unknown"] - read_counter["Unmatched"] 
 
     for index_seq, index_name in index_map.items():
-        print(f"{index_name}\t{count_map[index_seq]}")
-        total_read_pair_matches += count_map[index_seq]
+        print(f"{index_name}\t{read_counter[index_seq]}\t{(read_counter[index_seq]/read_count) * 100:.2f}")
 
-    print(f"Read-Pair Matches\t{total_read_pair_matches}")
+    
+    print()
+    print("Category\tCount\tPercentage")
+
     for nonmatch in nonmatch_categories:
-        print(f"Read-Pair {nonmatch}\t{count_map[nonmatch]}")
+        print(f"Read-Pair {nonmatch}\t{read_counter[nonmatch]}\t{(read_counter[nonmatch]/total) * 100:.2f}")
+
+    print(f"Read-Pair Matches\t{read_count}\t{(read_count / total) * 100:.2f}")
+    print(f"Total Reads\t{total}\t{(total / total) * 100:.2f}")
+
 
 
 
