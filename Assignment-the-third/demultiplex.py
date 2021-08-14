@@ -84,6 +84,7 @@ if __name__ == "__main__":
         read2_record[1] = bio.reverse_complement(read2_record[1])
         
         # Update read headers with indexes (this assumes files are ordered)
+        # Indexes formatting should be 'Index1-Index2 (reverse complemented)''
         read1_record[0] += f" {index1_record[1]}-{index2_record[1]}"
         read2_record[0] += f" {index1_record[1]}-{index2_record[1]}"
 
@@ -96,6 +97,8 @@ if __name__ == "__main__":
         This is where file-writing occurs.
         Additionally, each write per read-pair index
         and nonmatch/unknown categories will be counted.
+
+        Under no circumstance should a read be skipped or not written to a file!!!
         '''
 
         # Read-Pairs must have known indexes and indexes with good quality scores

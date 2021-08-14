@@ -1,8 +1,16 @@
 #!/usr/bin/bash
 
 inputdir="../TEST-input_FASTQ"
-outputdir="../TEST-output_FASTQ"
+expectdir="../TEST-output_FASTQ"
+actualdir="./${1}"
 
+#function die
+#{
+#	echo "MISMATCH FOUND $1"
+	# exit 1
+#}
+
+mkdir $actualdir
 
 index1_file="${inputdir}/R2_input.fq.gz"
 index2_file="${inputdir}/R3_input.fq.gz"
@@ -16,5 +24,9 @@ python3 demultiplex.py \
  	--index_2		"$index2_file" \
  	--read_2		"$read2_file" \
  	--qscore_cutoff		30.0 \
- 	--output_dir		${outputdir}
+ 	--output_dir		${actualdir}
 
+# diff files 
+ls -1 $actualdir | while read line; do diff "${actualdir}/${line}" "${expectdir}/${line}"; done
+
+exit 0
